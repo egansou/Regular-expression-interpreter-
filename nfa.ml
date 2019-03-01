@@ -1,4 +1,3 @@
-(* CMSC 330 / Fall 2017 / Project 3 *)
 (* Name: Enock Gansou *)
 
 type transition = int * char option * int
