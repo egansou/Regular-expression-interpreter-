@@ -1,5 +1,5 @@
-(* CMSC 330 / Fall 2017 / Project 3 *)
 (* Name: Enock Gansou*)
+
 open Nfa
 
 type regexp_t =
