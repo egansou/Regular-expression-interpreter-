@@ -1,6 +1,4 @@
 # Project : Regular Expression Interpreter
-CMSC 330, Fall 2017  
-Due October <s>23rd</s> 26th, 2017 at 11:59 PM
 
 Library functions to use include [`Pervasives` module][pervasives doc], as well as functions from the [`List`][list doc] and [`String`][string doc] modules. 
 
