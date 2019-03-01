@@ -1,95 +1,35 @@
-# Project 3: Regular Expression Interpreter
+# Project : Regular Expression Interpreter
 CMSC 330, Fall 2017  
 Due October <s>23rd</s> 26th, 2017 at 11:59 PM
 
-Ground Rules and Extra Info
----------------------------
-This **is not** a pair project.
-
-For this project you are allowed to use the library functions found in the [`Pervasives` module][pervasives doc], as well as functions from the [`List`][list doc] and [`String`][string doc] modules. As in the previous project, you are not allowed to use imperative OCaml (e.g. `ref` or `:=`), with the exception of the `next` function used to generate new NFA state numbers. You will receive a 0 for any functions using restricted features - we will be checking your code!
+Library functions to use include [`Pervasives` module][pervasives doc], as well as functions from the [`List`][list doc] and [`String`][string doc] modules. 
 
 Introduction
 ------------
-Your job is to implement the `Nfa` and `Regexp` modules, which implement NFAs and a regular expressions interpreter, respectively. The signature and starter implementation for the two modules is provided. Please take a look at the interface files (`nfa.mli` and `regexp.mli`) before beginning the project. You may not change the module signatures in any way, though your implementation may include more types and functions than are listed in the signatures. The `Regexp` module implementation contains a parser you can use to test your implementation.
+The goal of this project is to implement the `Nfa` and `Regexp` modules, which implement NFAs and a regular expressions interpreter, respectively. The signature and starter implementation for the two modules is provided. Please take a look at the interface files (`nfa.mli` and `regexp.mli`).
 
 Project Files
 -------------
-To begin this project, you will need to commit any uncommitted changes to your local branch and pull updates from the git repository. [Click here for directions on working with the Git repository.][git instructions] The following are the relevant files:
+The following are the relevant files:
 
 * OCaml Files
-  * __nfa.ml__ and __nfa.mli__: This is where you will write your code for the first part of the project, the NFA implementation.
+  * __nfa.ml__ and __nfa.mli__: This will contain the first part of the project, the NFA implementation.
     * Note that you will not change `nfa.mli`!
-  * __regexp.ml__ and __regexp.mli__: This is where you will write your code for the second part of the project, the regular expressions interpreter. It also contains an implementation of a parser where you can use some of the funtions such as `string_to_regexp` and `string_to_nfa` for creating your own test cases.
+  * __regexp.ml__ and __regexp.mli__: This will contain the second part of the project, the regular expressions interpreter. It also contains an implementation of a parser where I can use some of the funtions such as `string_to_regexp` and `string_to_nfa` for creating your own test cases.
     * Note that you will not change `regexp.mli`!
   * __public.ml__: This file contains all of the public test cases.
   * __viz.ml__: This script can be used to display regex NFAs. This is a very useful debugging tool! Described more below.
-* Submission Scripts and Other Files
-  * __submit.rb__: Execute this script to submit your project to the submit server.
-  * __submit.jar and .submit__: These files are used by the ruby file above, do not worry about them.
-  * __Makefile__: This is used to build all project executables.
-
-Compilation and Tests
----------------------
-In order to compile your project, simply run the `make` command and our Makefile will handle the compilation process for you. After compiling your code, running the `public.byte` binary will execute the public tests. (I.e., do `./public.byte`; think of this just like with `a.out` in C, just named `public.byte` instead of `a.out`.)
-
-For testing your regular expressions, we've provided another build target: `viz.byte`. When you run this command, it will read a regular expression from standard in, compose an NFA from it, and export that NFA to Graphviz before rendering to a PNG. For this target to work, however, you must install Graphviz:
-- MacOS: `brew install graphviz`
-- Aptitude-based Linux: `sudo apt-get install libgraphviz-dev`
-  - This includes the class VM, Ubuntu, Debian, and any Debian derivative OS
-
-Note that you are **not** required to do this, it will just be immensely helpful in debugging your code. Once you've performed these steps, you can run the visualizer as follows:
-
-1. Run the command `./viz.byte` to open the input shell.
-2. The shell will ask for a regular expression. Type without spaces and using only the constructs supported by this project.
-3. Select if you want to convert the NFA to a DFA (with your conversion function) before visualizing.
-4. You should be notified that the image has been successfully generated and put in `output.png`.
-5. Use an image viewer of choice to open `output.png` and see the visual representation of your generated NFA.
-
-If you would like to do testing of your code in the toplevel, we have set up an init file so that when you simply run `ocaml` to open the toplevel like normal, your `Nfa` and `Regexp` modules are loaded as well. This will only work, however, after a build (i.e. the `_build` directory is intact with the cmo and cmi files). If you get a message of the form `Cannot find file...` when starting the toplevel, it's because you need to run `make` before opening the toplevel.
-
-One final general note: This project makes use of OCaml's module system. However, you don't need any level of detailed knowledge about modules to successfully implement this project. Your work will take place in both the `Nfa` and `Regexp` modules, and the `Regexp` module will refer to many functions in the `Nfa` module. At a base level, this is purely organizational choice. If you would like to learn more about modules, check out the [Real World OCaml Modules Chapter][modules doc] for a straightforward explanation of modules in OCaml. If you want to be more proficient in OCaml, a basic understanding of the module system will make many seemingly cryptic programs much more readable.
+  
 
 Part 1: NFA Implementation
 --------------------------
-Before starting, you'll want to familiarize yourself with the types you will be working with.
-
-Type `nfa_t` is an abstract type representing NFAs. It is up to you to decide the definition of this type, i.e., exactly how NFAs are implemented. Since the type is abstract, no client that uses your module will be able to see exactly how they are implemented. As such, the `nfa.mli` file doesn't provide a concrete public-facing type for the module implementation and it is up to you to add one to `nfa.ml` where indicated.
-
-Type `transition` is defined as `int * char option * int`. It is a (non-abstract) type to describe an NFA transition. For example:
-```
-let t1 = (0, Some c, 1) (* Transition from state 0 to state 1 on character 'c' *)
-let t2 = (1, None, 0)   (* Transition from state 1 to state 0 on epsilon *)
-```
-
-We define the function `next` for you, which provides a unique int at every call.
-
-* **Type:** `unit -> int`
-* **Description:** Return a new integer, different from any values previously returned by next. This should be used when creating NFA's to avoid conflicting state names(i.e. integers). (This function is defined on the OCaml slides.)
-* **Examples:** 
-```
-next () = 1
-next () = 2 (* calling next a second time increments the counter *)
-```
-
-We also define the function `int_list_to_int` which gives a unique int for every int list. You may find this a helpful function in `nfa_to_dfa`.
-
-* **Type:** `int list -> int`
-* **Description:** Returns a unique int representation of an int list.
-* **Examples:**
-```
-int_list_to_int [1;2;3] = 0
-int_list_to_int [] = 1
-int_list_to_int [] = 1 (* will now always yield 1 for [] *)
-```
 
 ### Functions to implement
-
-You must now implement the following functions as specified. Functions listed later may productively use functions defined earlier.
 
 **make_nfa ss fs ts**
 
 * **Type:** `int -> int list -> transition list -> nfa_t`
-* **Description:** This function takes as input the starting state, a list of final states, and a list of transitions, returing an NFA. Again, it is up to you to decide exactly how NFAs should be implemented, but you probably do not need to do much more than simply track these three components (the starting state, final states, and transition list).
+* **Description:** This function takes as input the starting state, a list of final states, and a list of transitions, returing an NFA. 
 * **Examples:**
 ```
 let m = make_nfa 0 [2] [(0, Some 'a', 1); (1, None, 2)] (* returns value of type nfa_t *)
@@ -268,24 +208,6 @@ Precedence | Operator | Description
 
 Also, note that all the binary operators are **right associative**. 
 
-Project Submission
-------------------
-You should submit the files `nfa.ml` and `regexp.ml` containing your solution. You may submit other files, but they will be ignored during grading. We will run your solution as individual OUnit tests just as in the provided public test file.
-
-Be sure to follow the project description exactly! Your solution will be graded automatically, so any deviation from the specification will result in lost points.
-
-You can submit your project in two ways:
-
-* Submit your files directly to the [submit server][submit server] by clicking on the submit link in the column next to the project number.Then, use the submit dialog to submit your nfa.ml file directly. 
-Select your file using the "Browse" button, then press the "Submit project!" button. You do not need to put it in a zip file.
-![Upload your file][web upload example]
-* Submit directly by executing a the submission script on a computer with Java and network access. Included in this project are the submission scripts and related files listed under Project Files. These files should be in the directory containing your project. From there you can either execute `ruby submit.rb` or run the command `java -jar submit.jar` directly (this is all submit.rb does).
-No matter how you choose to submit your project, make sure that your submission is received by checking the [submit server][submit server] after submitting.
-
-Academic Integrity
-------------------
-Please **carefully read** the academic honesty section of the course syllabus. **Any evidence** of impermissible cooperation on projects, use of disallowed materials or resources, or unauthorized use of computer accounts, **will** be submitted to the Student Honor Council, which could result in an XF for the course, or suspension or expulsion from the University. Be sure you understand what you are and what you are not permitted to do in regards to academic integrity when it comes to project assignments. These policies apply to all students, and the Student Honor Council does not consider lack of knowledge of the policies to be a defense for violating them. Full information is found in the course syllabus, which you should review before starting.
-
 
 [list doc]: https://caml.inria.fr/pub/docs/manual-ocaml/libref/List.html
 [string doc]: https://caml.inria.fr/pub/docs/manual-ocaml/libref/String.html
@@ -295,6 +217,3 @@ Please **carefully read** the academic honesty section of the course syllabus. *
 [pervasives doc]: https://caml.inria.fr/pub/docs/manual-ocaml/libref/Pervasives.html
 [git instructions]: ../git_cheatsheet.md
 [wikipedia inorder traversal]: https://en.wikipedia.org/wiki/Tree_traversal#In-order
-[submit server]: submit.cs.umd.edu
-[web submit link]: image-resources/web_submit.jpg
-[web upload example]: image-resources/web_upload.jpg
