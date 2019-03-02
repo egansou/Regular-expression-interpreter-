@@ -17,7 +17,7 @@ let int_list_to_int =
       if Hashtbl.mem tbl slst then Hashtbl.find tbl slst
     else let n = next' () in Hashtbl.add tbl slst n; n)
 
-(* YOUR CODE BEGINS HERE *)
+
 
 type nfa_t = {start : int ; finals : int list ; transitions : transition list }
 
