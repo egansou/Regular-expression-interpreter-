@@ -41,9 +41,6 @@ let rec to_string re = match re with
 
 let regexp_to_string re = to_string re 
 
-(*****************************************************************)
-(* Below this point is parser code that YOU DO NOT NEED TO TOUCH *)
-(*****************************************************************)
 
 exception IllegalExpression of string
 
